@@ -30,25 +30,29 @@ const Login = () => {
     console.log("Attempting login with:", { email, password }); // Debug log
 
     try {
-      // Admin credentials - make sure to use exact string comparison
+      // Admin login
       if (email.trim().toLowerCase() === "admin@gmail.com" && password === "admin") {
         console.log("Admin login successful"); // Debug log
         await new Promise(resolve => setTimeout(resolve, 1000));
         if (rememberMe) {
           localStorage.setItem('isAuthenticated', 'true');
           localStorage.setItem('userRole', 'admin');
+          localStorage.setItem('user', JSON.stringify({
+            name: 'Admin',
+            profileImage: 'https://ui-avatars.com/api/?name=Admin&background=random'
+          }));
         }
         navigate("/admin-dashboard");
         return;
       }
 
-      // Employee credentials
+      // Employee credentials with full names
       const employeeCredentials = [
-        { email: "john@example.com", password: "employee123" },
-        { email: "sarah@example.com", password: "employee123" },
-        { email: "michael@example.com", password: "employee123" },
-        { email: "emma@example.com", password: "employee123" },
-        { email: "james@example.com", password: "employee123" }
+        { email: "john@example.com", password: "employee123", name: "John Smith", profileImage: "https://ui-avatars.com/api/?name=John+Smith&background=random" },
+        { email: "sarah@example.com", password: "employee123", name: "Sarah Wilson", profileImage: "https://ui-avatars.com/api/?name=Sarah+Wilson&background=random" },
+        { email: "michael@example.com", password: "employee123", name: "Michael Brown", profileImage: "https://ui-avatars.com/api/?name=Michael+Brown&background=random" },
+        { email: "emma@example.com", password: "employee123", name: "Emma Davis", profileImage: "https://ui-avatars.com/api/?name=Emma+Davis&background=random" },
+        { email: "james@example.com", password: "employee123", name: "James Johnson", profileImage: "https://ui-avatars.com/api/?name=James+Johnson&background=random" }
       ];
 
       const employee = employeeCredentials.find(
@@ -62,6 +66,10 @@ const Login = () => {
         if (rememberMe) {
           localStorage.setItem('isAuthenticated', 'true');
           localStorage.setItem('userRole', 'employee');
+          localStorage.setItem('user', JSON.stringify({
+            name: employee.name,
+            profileImage: employee.profileImage
+          }));
         }
         navigate("/employee-dashboard");
         return;
@@ -83,7 +91,7 @@ const Login = () => {
         <div className="flex flex-col items-center mb-4">
           <FaUserShield className="text-white text-5xl" />
           <h2 className="text-3xl font-semibold text-white text-center mt-2">
-            WorkXflowX
+            WorkXflow
           </h2>
         </div>
         <p className="text-white text-center mb-6">

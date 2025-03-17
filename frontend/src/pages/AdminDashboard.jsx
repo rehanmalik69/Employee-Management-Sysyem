@@ -99,7 +99,7 @@ const AdminDashboard = () => {
         {/* Sidebar */}
         <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} min-h-screen sticky top-0 bg-white bg-opacity-20 backdrop-blur-lg border-r border-white border-opacity-20 transition-all duration-300 ease-in-out`}>
           <div className="p-6">
-            <h2 className={`font-bold text-2xl mb-8 text-white ${!sidebarOpen && 'hidden'}`}>WorkFlowX</h2>
+            <h2 className={`font-bold text-2xl mb-8 text-white ${!sidebarOpen && 'hidden'}`}>WorkXFlow</h2>
             <nav className="space-y-6">
               <SidebarItem icon={<FaUsers />} text="Dashboard" active={true} collapsed={!sidebarOpen} />
               <SidebarItem icon={<FaUserTie />} text="Employees" collapsed={!sidebarOpen} />
