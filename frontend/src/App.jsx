@@ -17,7 +17,10 @@ function App() {
         <Route path="/admin/leaves" element={<AdminDashboard activeTab="leaves" />} />
         <Route path="/admin/salary" element={<AdminDashboard activeTab="salary" />} />
         <Route path="/admin/settings" element={<AdminDashboard activeTab="settings" />} />
-        <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
+
+        {/* Simplified Employee Routes */}
+        <Route path="/employee-dashboard" element={<EmployeeDashboard activeTab="dashboard" />} />
+        <Route path="/employee-dashboard/:tab" element={<EmployeeDashboard />} />
       </Routes>
     </BrowserRouter>
   );
