@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaUser, FaCalendar, FaClock, FaFileAlt, FaBell, FaChartLine, FaCheckCircle, FaEnvelope, FaSignOutAlt, FaTasks, FaCheck, FaTimes, FaUsers, FaVideo, FaHome, FaChartPie, FaComments } from "react-icons/fa";
+import { FaUser, FaCalendar, FaClock, FaFileAlt, FaBell, FaChartLine, FaCheckCircle, FaEnvelope, FaSignOutAlt, FaTasks, FaCheck, FaTimes, FaUsers, FaVideo, FaHome, FaChartPie, FaComments, FaCog, FaUserShield, FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const EmployeeDashboard = () => {
@@ -43,62 +43,224 @@ const EmployeeDashboard = () => {
     navigate('/login');
   };
 
+  const [attendanceData, setAttendanceData] = useState({
+    totalHours: 176.5,
+    attendanceRate: 98.2,
+    averageHours: 8.5,
+    overtimeHours: 12
+  });
+
+  const [leaveBalance, setLeaveBalance] = useState({
+    annual: 12,
+    sick: 7,
+    casual: 5,
+    total: 24,
+    used: 8
+  });
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaveForm, setLeaveForm] = useState({
+    type: '',
+    startDate: '',
+    endDate: '',
+    reason: '',
+    status: 'pending'
+  });
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Leave Request Approved', message: 'Your leave request for 15th March has been approved', time: '2 hours ago' },
+    { id: 2, title: 'New Task Assigned', message: 'You have been assigned to Project X', time: '1 day ago' },
+  ]);
+
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Handle leave request submission
+  const handleLeaveSubmit = (e) => {
+    e.preventDefault();
+    const newLeaveRequest = {
+      id: Date.now(),
+      ...leaveForm,
+      submittedDate: new Date().toISOString()
+    };
+    
+    // Update leave balance
+    setLeaveBalance(prev => ({
+      ...prev,
+      used: prev.used + calculateLeaveDays(leaveForm.startDate, leaveForm.endDate)
+    }));
+
+    // Add notification
+    setNotifications(prev => [{
+      id: Date.now(),
+      title: 'Leave Request Submitted',
+      message: `Your ${leaveForm.type} leave request has been submitted for approval`,
+      time: 'Just now'
+    }, ...prev]);
+
+    setShowLeaveModal(false);
+    setLeaveForm({
+      type: '',
+      startDate: '',
+      endDate: '',
+      reason: '',
+      status: 'pending'
+    });
+  };
+
+  // Calculate leave days
+  const calculateLeaveDays = (start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate - startDate);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
   const handleTaskAction = (taskId, action) => {
     setTasks(tasks.map(task => 
       task.id === taskId 
-        ? { ...task, status: action } 
+        ? { ...task, status: action, updatedAt: new Date().toISOString() } 
         : task
     ));
+
+    // Add notification for task update
+    setNotifications(prev => [{
+      id: Date.now(),
+      title: 'Task Updated',
+      message: `Task status changed to ${action}`,
+      time: 'Just now'
+    }, ...prev]);
   };
+
+  // Get task statistics
+  const getTaskStats = () => {
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    const inProgress = tasks.filter(t => t.status === 'accepted').length;
+    const pending = tasks.filter(t => t.status === 'pending').length;
+
+    return {
+      total,
+      completed,
+      inProgress,
+      pending,
+      completionRate: total ? Math.round((completed / total) * 100) : 0,
+      progressRate: total ? Math.round((inProgress / total) * 100) : 0
+    };
+  };
+
+  // Update profile
+  const handleProfileUpdate = (updatedData) => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    const newUserData = { ...userData, ...updatedData };
+    localStorage.setItem('user', JSON.stringify(newUserData));
+    setUser(newUserData);
+    setProfileModalOpen(false);
+  };
+
+  // Clock in/out functionality
+  const [clockedIn, setClockedIn] = useState(false);
+  const [clockInTime, setClockInTime] = useState(null);
+
+  const handleClockInOut = () => {
+    if (!clockedIn) {
+      setClockInTime(new Date());
+      // Add clock in record to attendance
+      setAttendanceData(prev => ({
+        ...prev,
+        totalHours: prev.totalHours + 0.0001 // This would be calculated properly in a real system
+      }));
+    } else {
+      // Calculate hours worked and update attendance
+      const hoursWorked = clockInTime ? 
+        (new Date() - clockInTime) / (1000 * 60 * 60) : 0;
+      setAttendanceData(prev => ({
+        ...prev,
+        totalHours: prev.totalHours + hoursWorked
+      }));
+      setClockInTime(null);
+    }
+    setClockedIn(!clockedIn);
+  };
+
+  // Add new JSX elements for Clock In/Out button
+  const clockInOutButton = (
+    <button
+      onClick={handleClockInOut}
+      className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+        clockedIn 
+          ? 'bg-red-500 hover:bg-red-600 text-white' 
+          : 'bg-green-500 hover:bg-green-600 text-white'
+      }`}
+    >
+      {clockedIn ? 'Clock Out' : 'Clock In'}
+    </button>
+  );
 
   const sidebarItems = [
     { icon: <FaHome />, label: "Dashboard", active: true },
     { icon: <FaChartPie />, label: "Analytics" },
     { icon: <FaUsers />, label: "Team" },
+    { icon: <FaTasks />, label: "Tasks" },
+    { icon: <FaCalendar />, label: "Calendar" },
     { icon: <FaComments />, label: "Chat" },
+    { icon: <FaCog />, label: "Settings" },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600">
-      {/* Header */}
-      <header className="bg-white/20 backdrop-blur-lg border-b border-white/20 sticky top-0 z-50">
-        <div className="flex items-center justify-between h-20 px-6 mx-auto max-w-[2000px]">
-          {/* Left Side */}
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-white">WorkXFlow</h1>
-            <div className="h-8 w-px bg-white/20"></div>
-            <div>
+      {/* Enhanced Header */}
+      <header className="bg-white/10 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
+        <div className="flex items-center justify-between h-16 px-6 mx-auto">
+          {/* Left Side - Logo & Welcome */}
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <FaUserShield className="text-2xl text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-white hidden md:block">WorkXFlow</h1>
+            </div>
+            <div className="hidden md:block h-8 w-px bg-white/10"></div>
+            <div className="hidden md:block">
               <p className="text-white/60 text-sm">Welcome back,</p>
-              <p className="text-white font-semibold text-lg">{user.name}</p>
+              <p className="text-white font-medium">{user.name}</p>
             </div>
           </div>
           
-          {/* Right Side */}
-          <div className="flex items-center space-x-6">
-            <input
-              type="search"
-              placeholder="Search..."
-              className="w-64 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 focus:border-white/40 focus:outline-none text-white placeholder-white/60 text-sm hidden md:block"
-            />
+          {/* Right Side - Search, Notifications & Profile */}
+          <div className="flex items-center gap-6">
+            <div className="relative hidden md:block">
+              <input
+                type="search"
+                placeholder="Search..."
+                className="w-64 px-4 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-white/20 focus:bg-white/10 focus:outline-none text-white placeholder-white/50 text-sm"
+              />
+              <FaSearch className="absolute right-3 top-2.5 text-white/50" />
+            </div>
             
-            <div className="flex items-center space-x-4">
-              <button className="p-2.5 hover:bg-white/10 rounded-xl transition-colors duration-200 relative">
-                <FaBell className="text-xl text-white" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 hover:bg-white/5 rounded-lg transition-colors">
+                <FaBell className="text-xl text-white/80" />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-purple-500">3</span>
               </button>
 
-              <div className="flex items-center space-x-4 pl-4 border-l border-white/20">
-                <img 
-                  src={user.profileImage || "https://ui-avatars.com/api/?name=User&background=random"} 
-                  alt="Profile" 
-                  className="w-10 h-10 rounded-xl border-2 border-white/20" 
-                />
+              <div className="h-8 w-px bg-white/10"></div>
+
+              <div className="flex items-center gap-3">
+                <div className="relative group">
+                  <img 
+                    src={user.profileImage || "https://ui-avatars.com/api/?name=User&background=random"} 
+                    alt="Profile" 
+                    className="w-9 h-9 rounded-lg border-2 border-white/20 group-hover:border-white/40 transition-colors" 
+                  />
+                  <div className="w-2 h-2 bg-green-500 rounded-full absolute -bottom-0.5 -right-0.5 border-2 border-purple-500"></div>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="p-2.5 hover:bg-white/10 rounded-xl transition-colors duration-200 text-white flex items-center gap-2"
+                  className="p-2 hover:bg-white/5 rounded-lg transition-colors text-white/80 hover:text-white flex items-center gap-2"
                 >
-                  <FaSignOutAlt className="text-lg" />
-                  <span className="hidden md:block text-sm font-medium">Logout</span>
+                  <FaSignOutAlt />
+                  <span className="hidden md:block text-sm">Logout</span>
                 </button>
               </div>
             </div>
@@ -107,25 +269,30 @@ const EmployeeDashboard = () => {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-20 md:w-64 min-h-screen bg-white/10 backdrop-blur-lg border-r border-white/20 fixed left-0 top-[73px]">
-          <nav className="p-4">
+        {/* Enhanced Sidebar */}
+        <aside className="w-20 md:w-64 min-h-[calc(100vh-4rem)] bg-white/5 backdrop-blur-lg border-r border-white/10 fixed left-0 top-16">
+          <div className="p-4 space-y-2">
             {sidebarItems.map((item, index) => (
               <div
                 key={index}
-                className={`flex items-center space-x-4 p-3 rounded-lg cursor-pointer mb-2 transition-all duration-200 ${
-                  item.active ? 'bg-white/20' : 'hover:bg-white/10'
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  item.active 
+                    ? 'bg-white/10 text-white' 
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
               >
-                <span className="text-xl text-white">{item.icon}</span>
-                <span className="text-white hidden md:block">{item.label}</span>
+                <div className={`${item.active ? 'bg-white/20' : 'bg-white/5'} p-2 rounded-lg transition-colors`}>
+                  {item.icon}
+                </div>
+                <span className="hidden md:block text-sm font-medium">{item.label}</span>
+                {item.active && <div className="w-1 h-6 bg-white/80 rounded-full absolute right-0"></div>}
               </div>
             ))}
-          </nav>
+          </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 ml-20 md:ml-64 p-8">
+        {/* Adjust main content margin */}
+        <main className="flex-1 ml-20 md:ml-64 p-6">
           <div className="max-w-[2000px] mx-auto">
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

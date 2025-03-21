@@ -9,10 +9,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard activeTab="dashboard" />} />
         <Route path="/admin/employees" element={<AdminDashboard activeTab="employees" />} />
         <Route path="/admin/projects" element={<AdminDashboard activeTab="projects" />} />
         <Route path="/admin/schedule" element={<AdminDashboard activeTab="schedule" />} />
+        <Route path="/admin/analytics" element={<AdminDashboard activeTab="analytics" />} />
+        <Route path="/admin/leaves" element={<AdminDashboard activeTab="leaves" />} />
+        <Route path="/admin/salary" element={<AdminDashboard activeTab="salary" />} />
         <Route path="/admin/settings" element={<AdminDashboard activeTab="settings" />} />
         <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
       </Routes>

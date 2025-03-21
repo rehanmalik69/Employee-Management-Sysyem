@@ -34,14 +34,21 @@ const Login = () => {
       if (email.trim().toLowerCase() === "admin@gmail.com" && password === "admin") {
         console.log("Admin login successful"); // Debug log
         await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Always store authentication
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userRole', 'admin');
+        localStorage.setItem('user', JSON.stringify({
+          name: 'Admin',
+          profileImage: 'https://ui-avatars.com/api/?name=Admin&background=random'
+        }));
+
+        // Only store credentials if remember me is checked
         if (rememberMe) {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('userRole', 'admin');
-          localStorage.setItem('user', JSON.stringify({
-            name: 'Admin',
-            profileImage: 'https://ui-avatars.com/api/?name=Admin&background=random'
-          }));
+          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberedPassword', password);
         }
+
         navigate("/admin-dashboard");
         return;
       }
@@ -63,14 +70,21 @@ const Login = () => {
       if (employee) {
         console.log("Employee login successful"); // Debug log
         await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Always store authentication
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userRole', 'employee');
+        localStorage.setItem('user', JSON.stringify({
+          name: employee.name,
+          profileImage: employee.profileImage
+        }));
+
+        // Only store credentials if remember me is checked
         if (rememberMe) {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('userRole', 'employee');
-          localStorage.setItem('user', JSON.stringify({
-            name: employee.name,
-            profileImage: employee.profileImage
-          }));
+          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberedPassword', password);
         }
+
         navigate("/employee-dashboard");
         return;
       }
