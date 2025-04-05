@@ -21,6 +21,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', environment: process.env.NODE_ENV });
 });
 
+// Static route for checking if the server is running
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
+
 // Use port from environment or fallback to 5000
 const PORT = process.env.PORT || 5000;
 
